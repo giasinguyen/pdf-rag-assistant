@@ -1,1 +1,96 @@
-spring.application.name=PDF_RAG_ASSITANT
+spring:
+  application:
+    name: PDF_RAG_ASSISTANT
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ragdb}
+    username: ${DB_USERNAME:rag}
+    password: ${DB_PASSWORD:rag}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 60000
+      connection-timeout: 30000
+      pool-name: HikariPool
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+  ai:
+    gemini:
+      api-key: ${GEMINI_API_KEY}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+      chat:
+        model: ${GEMINI_CHAT_MODEL:gemini-1.5-flash}
+        temperature: ${GEMINI_CHAT_TEMPERATURE:0.2}
+        max-tokens: ${GEMINI_CHAT_MAX_TOKENS:1024}
+      embedding:
+        model: ${GEMINI_EMBED_MODEL:text-embedding-004}
+    retry:
+      max-attempts: 3
+
+  # WebClient timeout configuration
+  webflux:
+    timeout:
+      read: 30000
+      write: 30000
+      connect: 10000
+
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.ai: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.springframework.jdbc.core: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: none
+  ai:
+    vertex:
+      ai:
+        gemini:
+          chat:
+            options:
+              temperature: 0.1
+logging:
+  level:
+    root: INFO
